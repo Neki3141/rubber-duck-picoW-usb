@@ -54,7 +54,7 @@ automatically on startup or via a GPIO button for testing.
 ## Getting the source
 
 ```bash
-git clone https://github.com/your-username/rubber_usb.git
+git clone https://github.com/Neki3141/rubber_usb.git
 cd rubber_usb
 ```
 
@@ -200,7 +200,7 @@ the first space.
 | `-c:` | Ctrl (left control) | `-c: c` | Sends **Ctrl + 'c'** |
 | `-a:` | Alt (left alt) | `-a: x` | Sends **Alt + 'x'** |
 | `-w:` | Win / GUI (left GUI) | `-w: d` | Sends **Win + 'd'** |
-| `-i:` | Insert string (no modifiers) | `-i: hello\n` | Types the literal characters `hello` (newline ignored) |
+| `-i:` | Insert string (no modifiers) | `-i: hello\n` | Types the literal characters `hello` and press enter |
 | No prefix | *Invalid* - rejected with an error message | - | - |
 
 **Rules**
