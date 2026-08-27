@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
-
+#include <stdexcept>
 
 void KeySent::processInput(const std::string &input) {
     line_number++;
@@ -14,11 +14,12 @@ void KeySent::processInput(const std::string &input) {
         return; 
     }
     
-    size_t spacePos = input.find(' ');
+    size_t spacePos = input.find(':');
     if (spacePos == std::string::npos || spacePos > 4) {
         return; // No valid command space boundary found
     }
 
+    // Split the input into command and the rest of the string
     std::string command = input.substr(0, spacePos);
     std::string input_string = input.substr(spacePos + 1);
 
@@ -29,24 +30,35 @@ void KeySent::processInput(const std::string &input) {
     is_ctrl = false;
     is_win = false;
 
-    // Check line prefixes
-    if (command == "-s:") {
-        is_shift = true; 
-    } else if (command == "-a:") {
-        is_alt = true;
-    } else if (command == "-w:") {
-        is_win = true; 
-    } else if (command == "-c:") { // Standardized to match the colon syntax
-        is_ctrl = true;
-    }else if (command == "-i:") {
-        // No state change, just process the input_string
-        processString(input_string);
-        return; // Exit early since we don't need to set any flags
+    for (char c : command){
+        switch (c){
+            case 's':
+                is_shift = true;
+                break;
+            case 'a':
+                is_alt = true;
+                break;
+            case 'c':
+                is_ctrl = true;
+                break;
+            case 'w':
+                is_win = true;
+                break;
+            case 'i':
+                // No state change, just process the input_string
+                processString(input_string);
+                return; // Exit early since we don't need to set any flags
+            case 'd':
+                // Delay command, parse the number and call delay function
+                delay(input_string);
+                return; // Exit early after processing delay
+            default:
+                std::cerr << "Error: Invalid comment character '" << c << "' on line " << line_number << std::endl;
+                return; // Exit early on invalid comment character
+        } 
+        
     }
-    else{
-        std::cerr << "Error: Invalid command '" << command << "' on line " << line_number << std::endl;
-        return;
-    }
+
     // process shortcut or keybinds
     sendKey(input_string[0], is_shift);
     std::cout << "input_char: " << input_string[0] << std::endl;
@@ -121,3 +133,11 @@ void KeySent::sendKey(char key, bool use_shift) {
     
 }
 
+void KeySent::delay(std::string delay_ms_str) {
+    int delay_ms = std::stoi(delay_ms_str);
+    uint32_t start_time = to_ms_since_boot(get_absolute_time());
+    while (to_ms_since_boot(get_absolute_time()) - start_time < delay_ms) {
+        tud_task(); // Keep the USB stack alive during the delay
+                    // This is important to prevent the host from thinking the device has disconnected
+    }
+}

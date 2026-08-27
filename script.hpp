@@ -5,8 +5,10 @@
 #include <string>
 
 std::vector<std::string>COMMANDS = {
-    "-w: b",
-    "-i: https://youtu.be/dQw4w9WgXcQ?si=ZhpKDiqmRk1AIY9Q\n"
+    // "aw:e",
+    // "d:5000",
+    "w:b",
+    "i:https://youtu.be/dQw4w9WgXcQ?si=ZhpKDiqmRk1AIY9Q\n"
 };
 
 

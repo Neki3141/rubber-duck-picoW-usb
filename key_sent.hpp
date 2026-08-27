@@ -33,7 +33,7 @@ class KeySent {
         void processString(const std::string& keys);
         void sendKey(char key, bool is_shift);
         void sendCombo(char key);
-    
+        void delay(std::string delay_ms_str); 
 };      
 
 
