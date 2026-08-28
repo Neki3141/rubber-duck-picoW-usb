@@ -6,22 +6,26 @@ automatically on startup or via a GPIO button for testing.
 
 ## Table of Contents
 
-1. [Hardware requirements](#hardware-requirements)
-2. [Software requirements](#software-requirements)
-3. [Getting the source](#getting-the-source)
-4. [Building & flashing](#building--flashing)
-5. [Writing a script (`script.hpp`)](#writing-a-script-scripthpp)
-6. [Running the program](#running-the-program)
-   - 6.1 [Normal mode (auto-run on startup)](#normal-mode-auto-run-on-startup)
-   - 6.2 [Button-triggered test loop](#button-triggered-test-loop)
-7. [Command format reference](#command-format-reference)
-8. [Debugging & logging](#debugging--logging)
-9. [Contributing](#contributing)
-10. [License](#license)
+- [Rubber USB Keyboard Demo](#rubber-usb-keyboard-demo)
+  - [Table of Contents](#table-of-contents)
+  - [1. Hardware requirements](#1-hardware-requirements)
+  - [2. Software requirements](#2-software-requirements)
+  - [3. Getting the source](#3-getting-the-source)
+  - [4. Building \& flashing](#4-building--flashing)
+  - [5. Writing a script (`script.hpp`)](#5-writing-a-script-scripthpp)
+    - [Example template (already in the repo)](#example-template-already-in-the-repo)
+    - [How to add your own commands](#how-to-add-your-own-commands)
+  - [6. Running the program](#6-running-the-program)
+    - [6.1 Normal mode (auto-run on startup)](#61-normal-mode-auto-run-on-startup)
+    - [6.2 Button-triggered test loop](#62-button-triggered-test-loop)
+  - [7. Command format reference](#7-command-format-reference)
+  - [7. Debugging \& logging](#7-debugging--logging)
+  - [9. Contributing](#9-contributing)
+  - [10. License](#10-license)
 
 ---
 
-## Hardware requirements
+## 1. Hardware requirements
 
 | Item | Minimum spec | Purpose |
 |------|--------------|---------|
@@ -36,7 +40,7 @@ automatically on startup or via a GPIO button for testing.
 
 ---
 
-## Software requirements
+## 2. Software requirements
 
 | Tool | Version (as of 2026-07-13) | Install command (Ubuntu/Debian) |
 |------|----------------------------|----------------------------------|
@@ -51,7 +55,7 @@ automatically on startup or via a GPIO button for testing.
 
 ---
 
-## Getting the source
+## 3. Getting the source
 
 ```bash
 git clone https://github.com/Neki3141/rubber_usb.git
@@ -72,7 +76,7 @@ The project layout is:
 
 ---
 
-## Building & flashing
+## 4. Building & flashing
 
 ```bash
 # 1. Create a build folder and invoke CMake
@@ -93,7 +97,7 @@ After flashing, the device will enumerate on the host as "Rubber_DucK Keyboard"
 
 ---
 
-## Writing a script (`script.hpp`)
+## 5. Writing a script (`script.hpp`)
 
 `script.hpp` defines a global `std::vector<std::string> COMMANDS`. Each entry is
 a line that `KeySent::processInput()` will parse.
@@ -108,8 +112,8 @@ a line that `KeySent::processInput()` will parse.
 #include <string>
 
 std::vector<std::string> COMMANDS = {
-    "-w: b",                                   // Windows (GUI) key + 'b'
-    "-i: https://youtu.be/dQw4w9WgXcQ\n"       // Type a URL (no modifiers)
+    "w:b",                                   // Windows (GUI) key + 'b'
+    "i:https://youtu.be/dQw4w9WgXcQ\n"       // Type a URL (no modifiers)
 };
 
 #endif // SCRIPT_HPP
@@ -127,7 +131,7 @@ for the firmware.
 
 ---
 
-## Running the program
+## 6. Running the program
 
 ### 6.1 Normal mode (auto-run on startup)
 
@@ -149,34 +153,8 @@ button to drive the same `input_task()` on demand.
 
 To enable it:
 
-1. Uncomment the block between line 58 and line 81 in `main.cpp`.
-2. Re-build and flash the firmware.
-
-```cpp
-// int main()
-// {
-//     stdio_init_all();
-//     gpio_init(BUTTON_PIN);
-//     gpio_set_dir(BUTTON_PIN, GPIO_IN);
-//     gpio_pull_up(BUTTON_PIN); // active-low button
-//     bool button_pressed = false;
-//
-//     tusb_init();
-//     while (!tud_mounted()) { tud_task(); }
-//
-//     while (1) {
-//         tud_task(); // keep USB stack alive
-//         if (gpio_get(BUTTON_PIN) == 0) {          // pressed
-//             if (!button_pressed) {
-//                 input_task();                     // run the script once
-//                 button_pressed = true;
-//             }
-//         } else {
-//             button_pressed = false;               // released - ready for next press
-//         }
-//     }
-// }
-```
+1. Flash firmware name rubber_usb_debug.uf2 into pico.
+2. Connect a momentary push-button between **GPIO 15** and **GND**.
 
 **Behaviour:**
 
@@ -188,7 +166,7 @@ then use the button to test without power-cycling the board.
 
 ---
 
-## Command format reference
+## 7. Command format reference
 
 Each line must start with a **modifier prefix** followed by a colon `:` and a
 **space-separated payload**. The parser only looks at the first token before
@@ -196,16 +174,17 @@ the first space.
 
 | Prefix | Meaning | Example | Effect |
 |--------|---------|---------|--------|
-| `-s:` | Shift (left shift) | `-s: a` | Sends **'A'** (shift + 'a') |
-| `-c:` | Ctrl (left control) | `-c: c` | Sends **Ctrl + 'c'** |
-| `-a:` | Alt (left alt) | `-a: x` | Sends **Alt + 'x'** |
-| `-w:` | Win / GUI (left GUI) | `-w: d` | Sends **Win + 'd'** |
-| `-i:` | Insert string (no modifiers) | `-i: hello\n` | Types the literal characters `hello` and press enter |
+| `s:` | Shift (left shift) | `s:a` | Sends **'A'** (shift + 'a') |
+| `c:` | Ctrl (left control) | `c:c` | Sends **Ctrl + 'c'** |
+| `a:` | Alt (left alt) | `a:x` | Sends **Alt + 'x'** |
+| `w:` | Win / GUI (left GUI) | `w:d` | Sends **Win + 'd'** |
+| `i:` | Insert string (no modifiers) | `i:hello\n` | Types the literal characters `hello` and press enter |
+| `d:` | Delay (milliseconds) | `d:1000` | Waits 1 second before the next command |
 | No prefix | *Invalid* - rejected with an error message | - | - |
 
 **Rules**
 
-- The **command token** must be exactly four characters (`-x:`) - longer prefixes are ignored.
+- The **command token** can be added multiple time like (`cs:a` ctrl+shift+A) but have to end with `:`
 - The payload may contain any printable ASCII character; the translation table
   (`KeyTranslate::translateKey`) handles letters, numbers, punctuation, and common symbols.
 - Newline (`\n`) or carriage-return characters at the end of a payload are stripped automatically.
@@ -215,7 +194,7 @@ the first space.
 
 ---
 
-## Debugging & logging
+## 7. Debugging & logging
 
 - The firmware prints diagnostic messages to the **Serial (USB CDC)** console via
   `printf`. To view them, open a serial terminal (e.g., `minicom -D /dev/ttyACM0 -b 115200`).
@@ -233,7 +212,7 @@ the first space.
 
 ---
 
-## Contributing
+## 9. Contributing
 
 1. Fork the repository.
 2. Create a feature branch (`git checkout -b my-feature`).
@@ -251,7 +230,7 @@ Please keep the coding style consistent:
 
 ---
 
-## License
+## 10. License
 
 This project is released under the **MIT License** - see the `LICENSE` file in
 the repository root.

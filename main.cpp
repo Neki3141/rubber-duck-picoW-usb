@@ -34,6 +34,35 @@ void input_task() {
     tud_hid_keyboard_report(0, 0, NULL);
 }
 
+#ifdef DEBUG_BUILD
+// Button setup for testing the input_task function
+// Only for debugging purposes, not for production use
+int main()
+{
+    stdio_init_all();
+    gpio_init(BUTTON_PIN);
+    gpio_set_dir(BUTTON_PIN, GPIO_IN);
+    gpio_pull_up(BUTTON_PIN); // Enable pull-up resistor for the button
+    bool button_pressed = false;
+
+    tusb_init();
+    while (!tud_mounted()) {
+        tud_task(); // Keeps the USB handshake processing alive
+    }
+    while (1) {
+        tud_task(); // Device task must be called continuously in the main loop
+        if (gpio_get(BUTTON_PIN) == 0) { // Button is pressed (active low)
+            if (!button_pressed) {
+                input_task();
+                button_pressed = true;
+            }
+        } else {
+            button_pressed = false; // Button released
+        }
+    }
+}
+#else
+
 int main()
 {
     tusb_init();
@@ -51,34 +80,7 @@ int main()
     tud_task(); // Device task must be called continuously in the main loop
     input_task();
 }
-
-
-// Button setup for testing the input_task function
-// Only for debugging purposes, not for production use
-// int main()
-// {
-//     stdio_init_all();
-//     gpio_init(BUTTON_PIN);
-//     gpio_set_dir(BUTTON_PIN, GPIO_IN);
-//     gpio_pull_up(BUTTON_PIN); // Enable pull-up resistor for the button
-//     bool button_pressed = false;
-//
-//     tusb_init();
-//     while (!tud_mounted()) {
-//         tud_task(); // Keeps the USB handshake processing alive
-//     }
-//     while (1) {
-//         tud_task(); // Device task must be called continuously in the main loop
-//         if (gpio_get(BUTTON_PIN) == 0) { // Button is pressed (active low)
-//             if (!button_pressed) {
-//                 input_task();
-//                 button_pressed = true;
-//             }
-//         } else {
-//             button_pressed = false; // Button released
-//         }
-//     }
-// }
+#endif
 
 // Debug function to send a key press every 4 seconds
 void send_key_task(void)
